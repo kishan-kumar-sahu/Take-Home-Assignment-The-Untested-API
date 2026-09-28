@@ -34,6 +34,29 @@ npm test           # run test suite
 npm run coverage   # run with coverage report
 ```
 
+### Creating a Task Using Thunder Client
+
+1. Open **Thunder Client** in VS Code.
+2. Select the **POST** method.
+3. Enter the task API endpoint, for example:
+   `http://localhost:3000/task`
+4. Go to the **Body** section.
+5. Select **JSON**.
+6. Paste the following JSON:
+
+```json
+{
+  "title": "Complete assignment",
+  "description": "Finish API testing",
+  "priority": "high"
+}
+```
+
+7. Click **Send**.
+
+If the request is successful, the task will be created and the API will return the created task in the response.
+
+
 ---
 
 ## Project Structure
