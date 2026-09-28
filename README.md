@@ -41,11 +41,10 @@ npm run coverage   # run with coverage report
 ```
 Take-Home-Assignment-The-Untested-API/
 │
-├── .git/
-├── .gitignore
+├── BUG_REPORT.MD
+├──.gitignore
 ├── ASSIGNMENT.md
 ├── README.md
-├── package-lock.json
 │
 └── task-api/
     │
