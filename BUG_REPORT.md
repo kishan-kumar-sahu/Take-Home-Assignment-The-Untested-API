@@ -1,120 +1,181 @@
- Bug Report
+# Bug Report
 
+## Bug 1: Pagination Starts from the Wrong Page
 
+### Summary
 
-\## Bug 1: Pagination starts from the wrong page
+The pagination logic in the Task Manager API uses a zero-based page calculation, while the public API expects pagination to start from page `1`.
 
+As a result, requesting the first page skips the first set of tasks.
 
+---
 
-\### Expected Behavior
+## 1. Expected Behavior
 
+The API supports pagination using:
 
-
-The API documentation supports pagination using:
-
-
-
-`GET /tasks?page=1\&limit=10`
-
-
+```http
+GET /tasks?page=1&limit=10
+```
 
 When `page=1` and `limit=10`, the API should return the first 10 tasks.
 
+Expected pagination behavior:
 
+| Page   | Expected Tasks    |
+| ------ | ----------------- |
+| Page 1 | Task 1 – Task 10  |
+| Page 2 | Task 11 – Task 20 |
+| Page 3 | Task 21 – Task 25 |
 
-Expected:
+---
 
+## 2. Actual Behavior
 
-
-\- page 1 → Task 1 to Task 10
-
-\- page 2 → Task 11 to Task 20
-
-
-
-\### Actual Behavior
-
-
-
-The API skips the first page.
-
-
+The API skips the first page of tasks.
 
 With 25 tasks:
 
+| Request           | Actual Result     |
+| ----------------- | ----------------- |
+| `page=1&limit=10` | Task 11 – Task 20 |
+| `page=2&limit=10` | Task 21 – Task 25 |
 
+Therefore, the first 10 tasks cannot be retrieved using `page=1`.
 
-\- page 1 → Task 11 to Task 20
+---
 
-\- page 2 → Task 21 to Task 25
+## 3. How the Bug Was Discovered
 
+The issue was identified while writing integration tests using **Jest and Supertest**.
 
+The test created 25 tasks and requested:
 
-\### How It Was Discovered
+```http
+GET /tasks?page=1&limit=10
+```
 
+The test expected the first task in the response to be `Task 1`.
 
-
-An integration test using Supertest created 25 tasks and requested:
-
-
-
-`GET /tasks?page=1\&limit=10`
-
-
-
-The test expected the first task to be `Task 1`, but the API returned `Task 11`.
-
-
+Instead, the API returned `Task 11`.
 
 A second test requested:
 
+```http
+GET /tasks?page=2&limit=10
+```
 
+The expected response contained 10 tasks:
 
-`GET /tasks?page=2\&limit=10`
+```text
+Task 11 – Task 20
+```
 
+However, the API returned only 5 tasks:
 
+```text
+Task 21 – Task 25
+```
 
-and expected 10 tasks (`Task 11` to `Task 20`), but only 5 tasks were returned (`Task 21` to `Task 25`).
+These test failures exposed the pagination calculation bug.
 
+---
 
+## 4. Root Cause
 
-\### Root Cause
+The issue was in the `getPaginated` function inside:
 
+```text
+src/services/taskService.js
+```
 
+The original implementation calculated the offset as:
 
-The `getPaginated` function calculates the offset using:
+```js
+const offset = page * limit;
+```
 
+This treats the page number as **zero-based**.
 
+However, the API uses page numbers starting from **1**.
 
-`page \* limit`
+For example:
 
+```text
+page = 1
+limit = 10
 
+offset = 1 × 10
+       = 10
+```
 
-This treats the page number as zero-based, while the public API uses page numbers starting from 1.
+Therefore, `Array.slice()` starts at index `10`, which corresponds to Task 11 instead of Task 1.
 
+---
 
+## 5. Fix Applied
 
-\### Suggested Fix
+The pagination offset was changed to:
 
+```js
+const offset = (page - 1) * limit;
+```
 
+This correctly converts the public one-based page number into a zero-based array offset.
 
-Calculate the offset using:
+The resulting behavior is:
 
+```text
+Page 1:
+(1 - 1) × 10 = 0
+→ Task 1 – Task 10
 
+Page 2:
+(2 - 1) × 10 = 10
+→ Task 11 – Task 20
+```
 
-`(page - 1) \* limit`
+---
 
+## 6. Tests That Exposed the Bug
 
+The following integration tests identified the issue:
 
-This makes page 1 start at index 0 and page 2 start at index 10.
+```text
+GET /tasks pagination
+  › should return the first page when page=1 and limit=10
 
+GET /tasks pagination
+  › should return the second page when page=2 and limit=10
+```
 
+The tests were written using **Supertest** and verify the API behavior from the HTTP layer.
 
-\### Tests That Exposed the Bug
+---
 
+## 7. Verification
 
+After applying the fix:
 
-\- `GET /tasks pagination › should return the first page when page=1 and limit=10`
+* Page 1 correctly returns Task 1 – Task 10.
+* Page 2 correctly returns Task 11 – Task 20.
+* Page 3 correctly returns Task 21 – Task 25.
+* The complete test suite passes successfully.
 
-\- `GET /tasks pagination › should return the second page when page=2 and limit=10`
+### Final Test Result
 
+```text
+Test Suites: 2 passed, 2 total
+Tests:       41 passed, 41 total
+```
+
+### Coverage
+
+```text
+Statements: 87.5%
+Branches:   80.41%
+Functions:  87.5%
+Lines:      86.41%
+```
+
+The pagination fix is therefore covered by automated integration tests and verified as part of the complete test suite.
