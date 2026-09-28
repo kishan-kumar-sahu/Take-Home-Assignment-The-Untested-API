@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const taskService = require('../services/taskService');
-const { validateCreateTask, validateUpdateTask } = require('../utils/validators');
+// const { validateCreateTask, validateUpdateTask } = require('../utils/validators');
+const {
+  validateCreateTask,
+  validateUpdateTask,
+  validateAssignee,
+} = require('../utils/validators');
 
 router.get('/stats', (req, res) => {
   const stats = taskService.getStats();
@@ -68,5 +73,60 @@ router.patch('/:id/complete', (req, res) => {
 
   res.json(task);
 });
+
+
+router.patch('/:id/assign', (req, res) => {
+  const { assignee } = req.body;
+
+  const error = validateAssignee(assignee);
+
+  if (error) {
+    return res.status(400).json({ error });
+  }
+
+  const task = taskService.assignTask(req.params.id, assignee);
+
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  if (task.error) {
+    return res.status(400).json({ error: task.error });
+  }
+
+  res.json(task);
+});
+router.patch('/:id/complete', (req, res) => {
+  const task = taskService.completeTask(req.params.id);
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  res.json(task);
+});
+
+router.patch('/:id/assign', (req, res) => {
+  const { assignee } = req.body;
+
+  const error = validateAssignee(assignee);
+
+  if (error) {
+    return res.status(400).json({ error });
+  }
+
+  const task = taskService.assignTask(req.params.id, assignee);
+
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  if (task.error) {
+    return res.status(400).json({ error: task.error });
+  }
+
+  res.json(task);
+});
+
+
 
 module.exports = router;

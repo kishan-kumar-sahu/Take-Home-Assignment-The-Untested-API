@@ -33,4 +33,13 @@ const validateUpdateTask = (body) => {
   return null;
 };
 
-module.exports = { validateCreateTask, validateUpdateTask };
+const validateAssignee = (assignee) => {
+  if (typeof assignee !== 'string' || assignee.trim() === '') {
+    return 'assignee must be a non-empty string';
+  }
+
+  return null;
+};
+
+
+module.exports = { validateCreateTask, validateUpdateTask, validateAssignee };
