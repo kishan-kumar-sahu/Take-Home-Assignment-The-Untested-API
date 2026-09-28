@@ -39,16 +39,35 @@ npm run coverage   # run with coverage report
 ## Project Structure
 
 ```
-task-api/
-  src/
-    app.js                  # Express app setup
-    routes/tasks.js         # Route handlers
-    services/taskService.js # Business logic + in-memory data store
-    utils/validators.js     # Input validation helpers
-  tests/                    # Your tests go here
-  package.json
-  jest.config.js
-ASSIGNMENT.md               # Full brief — read this first
+Take-Home-Assignment-The-Untested-API/
+│
+├── .git/
+├── .gitignore
+├── ASSIGNMENT.md
+├── README.md
+├── package-lock.json
+│
+└── task-api/
+    │
+    ├── package.json
+    │
+    ├── BUG_REPORT.md
+    │
+    ├── src/
+    │   ├── app.js
+    │   │
+    │   ├── routes/
+    │   │   └── tasks.js
+    │   │
+    │   ├── services/
+    │   │   └── taskService.js
+    │   │
+    │   └── utils/
+    │       └── validators.js
+    │
+    └── tests/
+        ├── taskService.test.js
+        └── tasks.api.test.js
 ```
 
 > The data store is in-memory. It resets every time the server restarts.
