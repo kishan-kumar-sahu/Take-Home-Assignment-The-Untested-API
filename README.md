@@ -86,9 +86,11 @@ ASSIGNMENT.md               # Full brief — read this first
 
 **Create a task**
 ```bash
-curl -X POST http://localhost:3000/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Write tests", "priority": "high"}'
+{
+  "title": "Complete assignment",
+  "description": "Finish API testing",
+  "priority": "high"
+}
 ```
 
 **List tasks with filter**
